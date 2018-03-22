@@ -12,10 +12,10 @@ from numba.cuda.random import xoroshiro128p_uniform_float64
 from .inline_functions import lorentz_transform, get_scattering_probability, \
     get_photon_density_gaussian, INV_MC
 # Compile the inline functions for GPU
-lorentz_transform = cudajit( lorentz_transform, device=True, inline=True )
-get_scattering_probability = cudajit( get_scattering_probability,
+lorentz_transform = cuda.jit( lorentz_transform, device=True, inline=True )
+get_scattering_probability = cuda.jit( get_scattering_probability,
                                             device=True, inline=True )
-get_photon_density_gaussian = cudajit( get_photon_density_gaussian,
+get_photon_density_gaussian = cuda.jit( get_photon_density_gaussian,
                                             device=True, inline=True )
 
 @cudajit

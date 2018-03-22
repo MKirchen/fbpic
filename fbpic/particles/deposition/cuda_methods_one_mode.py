@@ -16,7 +16,7 @@ import numpy as np
 # -------------------------------
 
 # Linear shapes
-@cudajit(device=True, inline=True)
+@cuda.jit(device=True, inline=True)
 def z_shape_linear(cell_position, index):
     iz = int(math.ceil(cell_position)) - 1
     if index == 0:
@@ -24,7 +24,7 @@ def z_shape_linear(cell_position, index):
     if index == 1:
         return cell_position - iz
 
-@cudajit(device=True, inline=True)
+@cuda.jit(device=True, inline=True)
 def r_shape_linear(cell_position, index):
     flip_factor = 1.
     ir = int(math.ceil(cell_position)) - 1
@@ -36,7 +36,7 @@ def r_shape_linear(cell_position, index):
         return flip_factor*(cell_position - ir)
 
 # Cubic shapes
-@cudajit(device=True, inline=True)
+@cuda.jit(device=True, inline=True)
 def z_shape_cubic(cell_position, index):
     iz = int(math.ceil(cell_position)) - 2
     if index == 0:
@@ -48,7 +48,7 @@ def z_shape_cubic(cell_position, index):
     if index == 3:
         return (-1./6.)*(((iz+3)-cell_position)-2)**3
 
-@cudajit(device=True, inline=True)
+@cuda.jit(device=True, inline=True)
 def r_shape_cubic(cell_position, index):
     flip_factor = 1.
     ir = int(math.ceil(cell_position)) - 2

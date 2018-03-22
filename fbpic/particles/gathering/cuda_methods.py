@@ -13,9 +13,9 @@ import math
 from .inline_functions import \
     add_linear_gather_for_mode, add_cubic_gather_for_mode
 # Compile the inline functions for GPU
-add_linear_gather_for_mode = cudajit( add_linear_gather_for_mode,
+add_linear_gather_for_mode = cuda.jit( add_linear_gather_for_mode,
                                         device=True, inline=True )
-add_cubic_gather_for_mode = cudajit( add_cubic_gather_for_mode,
+add_cubic_gather_for_mode = cuda.jit( add_cubic_gather_for_mode,
                                         device=True, inline=True )
 
 # -----------------------

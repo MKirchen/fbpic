@@ -13,11 +13,11 @@ from scipy.constants import c
 from .inline_functions import get_ionization_probability, \
     get_E_amplitude, copy_ionized_electrons_batch
 # Compile the inline functions for GPU
-get_ionization_probability = cudajit( get_ionization_probability,
+get_ionization_probability = cuda.jit( get_ionization_probability,
                                         device=True, inline=True )
-get_E_amplitude = cudajit( get_E_amplitude,
+get_E_amplitude = cuda.jit( get_E_amplitude,
                             device=True, inline=True )
-copy_ionized_electrons_batch = cudajit( copy_ionized_electrons_batch,
+copy_ionized_electrons_batch = cuda.jit( copy_ionized_electrons_batch,
                                             device=True, inline=True )
 
 @cudajit

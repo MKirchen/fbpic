@@ -9,7 +9,7 @@ from fbpic.utils.cuda import cuda, cudajit
 import math
 from scipy.constants import c, e
 
-@cudajit(device=True, inline=True)
+@cuda.jit(device=True, inline=True)
 def push_p_vay( ux_i, uy_i, uz_i, inv_gamma_i,
     Ex, Ey, Ez, Bx, By, Bz, econst, bconst ):
     """
