@@ -6,6 +6,7 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines a set of generic functions that operate on a GPU.
 """
 from numba import cuda
+from functools import partial
 
 # Check if CUDA is available and set variable accordingly
 try:
@@ -13,6 +14,16 @@ try:
 except Exception:
     cuda_installed = False
 
+if cuda_installed:
+    if 'FBPIC_CUDA_FASTMATH' in os.environ:
+        if int(os.environ['FBPIC_CUDA_FASTMATH']) == 1:
+            cuda_fastmath = True
+            cudajit = partial(cuda.jit, fastmath=True)
+        else:
+            cuda_fastmath = False
+            cudajit = cuda.jit
+else:
+    cudajit = cuda.jit
 # -----------------------------------------------------
 # CUDA grid utilities
 # -----------------------------------------------------

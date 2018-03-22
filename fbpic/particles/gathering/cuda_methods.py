@@ -6,22 +6,23 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the field gathering methods linear and cubic order shapes
 on the GPU using CUDA.
 """
-from numba import cuda, float64, int64
+from numba import float64, int64
+from fbpic.utils.cuda import cuda, cudajit
 import math
 # Import inline functions
 from .inline_functions import \
     add_linear_gather_for_mode, add_cubic_gather_for_mode
 # Compile the inline functions for GPU
-add_linear_gather_for_mode = cuda.jit( add_linear_gather_for_mode,
+add_linear_gather_for_mode = cudajit( add_linear_gather_for_mode,
                                         device=True, inline=True )
-add_cubic_gather_for_mode = cuda.jit( add_cubic_gather_for_mode,
+add_cubic_gather_for_mode = cudajit( add_cubic_gather_for_mode,
                                         device=True, inline=True )
 
 # -----------------------
 # Field gathering linear
 # -----------------------
 
-@cuda.jit
+@cudajit
 def gather_field_gpu_linear(x, y, z,
                     invdz, zmin, Nz,
                     invdr, rmin, Nr,
@@ -196,7 +197,7 @@ def gather_field_gpu_linear(x, y, z,
 # Field gathering cubic
 # -----------------------
 
-@cuda.jit
+@cudajit
 def gather_field_gpu_cubic(x, y, z,
                     invdz, zmin, Nz,
                     invdr, rmin, Nr,

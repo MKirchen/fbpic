@@ -5,7 +5,7 @@
 This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the optimized fields methods that use cuda on a GPU
 """
-from numba import cuda
+from fbpic.utils.cuda import cuda, cudajit
 from scipy.constants import c, epsilon_0, mu_0
 c2 = c**2
 
@@ -13,7 +13,7 @@ c2 = c**2
 # Erasing functions
 # ------------------
 
-@cuda.jit
+@cudajit
 def cuda_erase_scalar( array ):
     """
     Set input array to 0
@@ -35,7 +35,7 @@ def cuda_erase_scalar( array ):
     if (iz < array.shape[0]) and (ir < array.shape[1]):
         array[iz, ir] = 0
 
-@cuda.jit
+@cudajit
 def cuda_erase_vector( array_r, array_t, array_z ):
     """
     Set the input arrays to 0
@@ -63,7 +63,7 @@ def cuda_erase_vector( array_r, array_t, array_z ):
 # Divide by volume functions
 # ---------------------------
 
-@cuda.jit
+@cudajit
 def cuda_divide_scalar_by_volume( array, invvol ):
     """
     Multiply the input array by the corresponding invvol
@@ -87,7 +87,7 @@ def cuda_divide_scalar_by_volume( array, invvol ):
         array[iz, ir] = array[iz, ir] * invvol[ir]
 
 
-@cuda.jit
+@cudajit
 def cuda_divide_vector_by_volume( array_r, array_t, array_z, invvol ):
     """
     Multiply the input arrays by the corresponding invvol
@@ -116,7 +116,7 @@ def cuda_divide_vector_by_volume( array_r, array_t, array_z, invvol ):
 # Methods of the SpectralGrid object
 # -----------------------------------
 
-@cuda.jit
+@cudajit
 def cuda_correct_currents_curlfree_standard( rho_prev, rho_next, Jp, Jm, Jz,
                             kz, kr, inv_k2, inv_dt, Nz, Nr ):
     """
@@ -139,7 +139,7 @@ def cuda_correct_currents_curlfree_standard( rho_prev, rho_next, Jp, Jm, Jz,
         Jm[iz, ir] += -0.5 * kr[iz, ir] * F
         Jz[iz, ir] += -1.j * kz[iz, ir] * F
 
-@cuda.jit
+@cudajit
 def cuda_correct_currents_crossdeposition_standard( rho_prev, rho_next,
         rho_next_z, rho_next_xy, Jp, Jm, Jz, kz, kr, inv_dt, Nz, Nr ):
     """
@@ -169,7 +169,7 @@ def cuda_correct_currents_crossdeposition_standard( rho_prev, rho_next,
             inv_kz = 1./kz[iz, ir]
             Jz[iz, ir] += 1.j * Dz * inv_kz
 
-@cuda.jit
+@cudajit
 def cuda_correct_currents_curlfree_comoving( rho_prev, rho_next, Jp, Jm, Jz,
                             kz, kr, inv_k2,
                             j_corr_coef, T_eb, T_cc,
@@ -195,7 +195,7 @@ def cuda_correct_currents_curlfree_comoving( rho_prev, rho_next, Jp, Jm, Jz,
         Jm[iz, ir] += -0.5 * kr[iz, ir] * F
         Jz[iz, ir] += -1.j * kz[iz, ir] * F
 
-@cuda.jit
+@cudajit
 def cuda_correct_currents_crossdeposition_comoving(
         rho_prev, rho_next, rho_next_z, rho_next_xy, Jp, Jm, Jz,
         kz, kr, j_corr_coef, T_eb, T_cc, inv_dt, Nz, Nr ) :
@@ -230,7 +230,7 @@ def cuda_correct_currents_crossdeposition_comoving(
             Jz[iz, ir] += 1.j * Dz * inv_kz
 
 
-@cuda.jit
+@cudajit
 def cuda_push_eb_standard( Ep, Em, Ez, Bp, Bm, Bz, Jp, Jm, Jz,
                        rho_prev, rho_next,
                        rho_prev_coef, rho_next_coef, j_coef,
@@ -299,7 +299,7 @@ def cuda_push_eb_standard( Ep, Em, Ez, Bp, Bm, Bz, Jp, Jm, Jz,
             + j_coef[iz, ir]*( 1.j*kr[iz, ir]*Jp[iz, ir] \
                         + 1.j*kr[iz, ir]*Jm[iz, ir] )
 
-@cuda.jit
+@cudajit
 def cuda_push_eb_comoving( Ep, Em, Ez, Bp, Bm, Bz, Jp, Jm, Jz,
                        rho_prev, rho_next,
                        rho_prev_coef, rho_next_coef, j_coef,
@@ -379,7 +379,7 @@ def cuda_push_eb_comoving( Ep, Em, Ez, Bp, Bm, Bz, Jp, Jm, Jz,
             + j_coef[iz, ir]*( 1.j*kr[iz, ir]*Jp[iz, ir] \
                         + 1.j*kr[iz, ir]*Jm[iz, ir] )
 
-@cuda.jit
+@cudajit
 def cuda_push_rho( rho_prev, rho_next, Nz, Nr ) :
     """
     Transfer the values of rho_next to rho_prev,
@@ -403,7 +403,7 @@ def cuda_push_rho( rho_prev, rho_next, Nz, Nr ) :
         rho_prev[iz, ir] = rho_next[iz, ir]
         rho_next[iz, ir] = 0.
 
-@cuda.jit
+@cudajit
 def cuda_filter_scalar( field, filter_array, Nz, Nr) :
     """
     Multiply the input field by the filter_array
@@ -428,7 +428,7 @@ def cuda_filter_scalar( field, filter_array, Nz, Nr) :
 
         field[iz, ir] = filter_array[iz, ir]*field[iz, ir]
 
-@cuda.jit
+@cudajit
 def cuda_filter_vector( fieldr, fieldt, fieldz, filter_array, Nz, Nr) :
     """
     Multiply the input field by the filter_array

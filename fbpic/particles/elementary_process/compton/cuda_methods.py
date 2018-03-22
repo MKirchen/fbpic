@@ -6,19 +6,19 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines cuda methods that are used in Compton scattering (on GPU).
 """
 import math
-from numba import cuda
+from fbpic.utils.cuda import cuda, cudajit
 from numba.cuda.random import xoroshiro128p_uniform_float64
 # Import the inline functions
 from .inline_functions import lorentz_transform, get_scattering_probability, \
     get_photon_density_gaussian, INV_MC
 # Compile the inline functions for GPU
-lorentz_transform = cuda.jit( lorentz_transform, device=True, inline=True )
-get_scattering_probability = cuda.jit( get_scattering_probability,
+lorentz_transform = cudajit( lorentz_transform, device=True, inline=True )
+get_scattering_probability = cudajit( get_scattering_probability,
                                             device=True, inline=True )
-get_photon_density_gaussian = cuda.jit( get_photon_density_gaussian,
+get_photon_density_gaussian = cudajit( get_photon_density_gaussian,
                                             device=True, inline=True )
 
-@cuda.jit
+@cudajit
 def get_photon_density_gaussian_cuda( photon_n, elec_Ntot,
     elec_x, elec_y, elec_z, ct, photon_n_lab_max, inv_laser_waist2,
     inv_laser_ctau2, laser_initial_z0, gamma_boost, beta_boost ):
@@ -51,7 +51,7 @@ def get_photon_density_gaussian_cuda( photon_n, elec_Ntot,
             laser_initial_z0, gamma_boost, beta_boost )
 
 
-@cuda.jit
+@cudajit
 def determine_scatterings_cuda( N_batch, batch_size, elec_Ntot,
     nscatter_per_elec, nscatter_per_batch, random_states, dt,
     elec_ux, elec_uy, elec_uz, elec_inv_gamma, ratio_w_electron_photon,
@@ -100,7 +100,7 @@ def determine_scatterings_cuda( N_batch, batch_size, elec_Ntot,
             ip = ip + 1
 
 
-@cuda.jit
+@cudajit
 def scatter_photons_electrons_cuda(
     N_batch, batch_size, photon_old_Ntot, elec_Ntot,
     cumul_nscatter_per_batch, nscatter_per_elec, random_states,

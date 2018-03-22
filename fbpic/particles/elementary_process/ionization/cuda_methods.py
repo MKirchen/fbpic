@@ -7,20 +7,20 @@ It defines cuda methods that are used in particle ionization.
 
 Apart from synthactic details, this file is very close to numba_methods.py
 """
-from numba import cuda
+from fbpic.utils.cuda import cuda, cudajit
 from scipy.constants import c
 # Import inline functions
 from .inline_functions import get_ionization_probability, \
     get_E_amplitude, copy_ionized_electrons_batch
 # Compile the inline functions for GPU
-get_ionization_probability = cuda.jit( get_ionization_probability,
+get_ionization_probability = cudajit( get_ionization_probability,
                                         device=True, inline=True )
-get_E_amplitude = cuda.jit( get_E_amplitude,
+get_E_amplitude = cudajit( get_E_amplitude,
                             device=True, inline=True )
-copy_ionized_electrons_batch = cuda.jit( copy_ionized_electrons_batch,
+copy_ionized_electrons_batch = cudajit( copy_ionized_electrons_batch,
                                             device=True, inline=True )
 
-@cuda.jit()
+@cudajit
 def ionize_ions_cuda( N_batch, batch_size, Ntot, level_max,
     n_ionized, is_ionized, ionization_level, random_draw,
     adk_prefactor, adk_power, adk_exp_prefactor,
@@ -74,7 +74,7 @@ def ionize_ions_cuda( N_batch, batch_size, Ntot, level_max,
             else:
                 is_ionized[ip] = 0
 
-@cuda.jit()
+@cudajit
 def copy_ionized_electrons_cuda(
     N_batch, batch_size, elec_old_Ntot, ion_Ntot,
     cumulative_n_ionized, is_ionized,

@@ -19,7 +19,7 @@ from .field_diag import FieldDiagnostic
 # Check if CUDA is available, then import CUDA functions
 from fbpic.utils.cuda import cuda_installed
 if cuda_installed:
-    from fbpic.utils.cuda import cuda, cuda_tpb_bpg_1d
+    from fbpic.utils.cuda import cuda, cudajit, cuda_tpb_bpg_1d
 
 class BoostedFieldDiagnostic(FieldDiagnostic):
     """
@@ -718,7 +718,7 @@ class SliceHandler:
 
 if cuda_installed:
 
-    @cuda.jit
+    @cudajit
     def extract_slice_cuda( Nr, iz, Sz, slice_arr,
         Er, Et, Ez, Br, Bt, Bz, Jr, Jt, Jz, rho, m ):
         """

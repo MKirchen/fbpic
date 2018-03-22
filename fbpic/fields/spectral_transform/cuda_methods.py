@@ -6,13 +6,13 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines a set of functions that are useful when converting the
 fields from interpolation grid to the spectral grid and vice-versa
 """
-from numba import cuda
+from fbpic.utils.cuda import cuda, cudajit
 
 # ------------------
 # Copying functions
 # ------------------
 
-@cuda.jit
+@cudajit
 def cuda_copy_2dC_to_2dR( array_in, array_out ) :
     """
     Store the complex Nz x Nr array `array_in`
@@ -36,7 +36,7 @@ def cuda_copy_2dC_to_2dR( array_in, array_out ) :
         array_out[iz, ir] = array_in[iz, ir].real
         array_out[iz+Nz, ir] = array_in[iz, ir].imag
 
-@cuda.jit
+@cudajit
 def cuda_copy_2dR_to_2dC( array_in, array_out ) :
     """
     Reconstruct the complex Nz x Nr array `array_out`,
@@ -60,7 +60,7 @@ def cuda_copy_2dR_to_2dC( array_in, array_out ) :
         array_out[iz, ir] = array_in[iz, ir] + 1.j*array_in[iz+Nz, ir]
 
 
-@cuda.jit
+@cudajit
 def cuda_copy_2d_to_1d( array_2d, array_1d ) :
     """
     Copy array_2d to array_1d, so that the first axis of array_2d
@@ -86,7 +86,7 @@ def cuda_copy_2d_to_1d( array_2d, array_1d ) :
         i = iz + array_2d.shape[0]*ir
         array_1d[i] = array_2d[iz, ir]
 
-@cuda.jit
+@cudajit
 def cuda_copy_1d_to_2d( array_1d, array_2d ) :
     """
     Copy array_1d to array_2d, so that the first axis of array_2d
@@ -116,7 +116,7 @@ def cuda_copy_1d_to_2d( array_1d, array_2d ) :
 # Functions that combine components in spectral space
 # ----------------------------------------------------
 
-@cuda.jit
+@cudajit
 def cuda_rt_to_pm( buffer_r, buffer_t, buffer_p, buffer_m ) :
     """
     Combine the arrays buffer_r and buffer_t to produce the
@@ -137,7 +137,7 @@ def cuda_rt_to_pm( buffer_r, buffer_t, buffer_p, buffer_m ) :
         buffer_m[iz, ir] = 0.5*( value_r + 1.j*value_t )
 
 
-@cuda.jit
+@cudajit
 def cuda_pm_to_rt( buffer_p, buffer_m, buffer_r, buffer_t ) :
     """
     Combine the arrays buffer_p and buffer_m to produce the

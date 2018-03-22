@@ -5,11 +5,11 @@
 This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the particle push methods on the GPU using CUDA.
 """
-from numba import cuda
+from fbpic.utils.cuda import cuda, cudajit
 import math
 from scipy.constants import c, e
 
-@cuda.jit(device=True, inline=True)
+@cudajit(device=True, inline=True)
 def push_p_vay( ux_i, uy_i, uz_i, inv_gamma_i,
     Ex, Ey, Ez, Bx, By, Bz, econst, bconst ):
     """
@@ -50,7 +50,7 @@ def push_p_vay( ux_i, uy_i, uz_i, inv_gamma_i,
     return( ux_f, uy_f, uz_f, inv_gamma_f )
 
 
-@cuda.jit
+@cudajit
 def push_x_gpu( x, y, z, ux, uy, uz, inv_gamma, dt,
                 x_push, y_push, z_push ) :
     """
@@ -88,7 +88,7 @@ def push_x_gpu( x, y, z, ux, uy, uz, inv_gamma, dt,
         y[i] += cdt*y_push*inv_g*uy[i]
         z[i] += cdt*z_push*inv_g*uz[i]
 
-@cuda.jit
+@cudajit
 def push_p_gpu( ux, uy, uz, inv_gamma,
                 Ex, Ey, Ez, Bx, By, Bz,
                 q, m, Ntot, dt ) :
@@ -136,22 +136,22 @@ def push_p_gpu( ux, uy, uz, inv_gamma,
             Ex[ip], Ey[ip], Ez[ip], Bx[ip], By[ip], Bz[ip], econst, bconst)
 
 
-@cuda.jit
+@cudajit
 def push_p_after_plane_gpu( z, z_plane, ux, uy, uz, inv_gamma,
                 Ex, Ey, Ez, Bx, By, Bz, q, m, Ntot, dt ) :
     """
     Advance the particles' momenta, using cuda on the GPU.
-    Only the particles that are located beyond the plane z=z_plane 
+    Only the particles that are located beyond the plane z=z_plane
     have their momentum modified ; the others particles move ballistically.
 
     Parameters
     ----------
     z: 1darray of floats
         The position of the particles in the z direction
-        
+
     z_plane: float
-        Position beyond which the particles should be 
-        
+        Position beyond which the particles should be
+
     For the other parameters, see the docstring of push_p_gpu
     """
     # Set a few constants
@@ -168,7 +168,7 @@ def push_p_after_plane_gpu( z, z_plane, ux, uy, uz, inv_gamma,
             Ex[ip], Ey[ip], Ez[ip], Bx[ip], By[ip], Bz[ip], econst, bconst)
 
 
-@cuda.jit
+@cudajit
 def push_p_ioniz_gpu( ux, uy, uz, inv_gamma,
                 Ex, Ey, Ez, Bx, By, Bz,
                 m, Ntot, dt, ionization_level ) :
@@ -182,7 +182,7 @@ def push_p_ioniz_gpu( ux, uy, uz, inv_gamma,
     ionization_level : 1darray of ints
         The number of electrons that each ion is missing
         (compared to a neutral atom)
-        
+
     For the other parameters, see the docstring of push_p_gpu
     """
     #Cuda 1D grid

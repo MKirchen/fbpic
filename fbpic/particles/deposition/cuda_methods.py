@@ -6,7 +6,7 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the deposition methods for rho and J for linear and cubic
 order shapes on the GPU using CUDA.
 """
-from numba import cuda
+from fbpic.utils.cuda import cuda, cudajit
 import math
 from scipy.constants import c
 import numpy as np
@@ -16,7 +16,7 @@ import numpy as np
 # -------------------------------
 
 # Linear shapes
-@cuda.jit(device=True, inline=True)
+@cudajit(device=True, inline=True)
 def z_shape_linear(cell_position, index):
     iz = int(math.ceil(cell_position)) - 1
     if index == 0:
@@ -24,7 +24,7 @@ def z_shape_linear(cell_position, index):
     if index == 1:
         return cell_position - iz
 
-@cuda.jit(device=True, inline=True)
+@cudajit(device=True, inline=True)
 def r_shape_linear(cell_position, index):
     flip_factor = 1.
     ir = int(math.ceil(cell_position)) - 1
@@ -36,7 +36,7 @@ def r_shape_linear(cell_position, index):
         return flip_factor*(cell_position - ir)
 
 # Cubic shapes
-@cuda.jit(device=True, inline=True)
+@cudajit(device=True, inline=True)
 def z_shape_cubic(cell_position, index):
     iz = int(math.ceil(cell_position)) - 2
     if index == 0:
@@ -48,7 +48,7 @@ def z_shape_cubic(cell_position, index):
     if index == 3:
         return (-1./6.)*(((iz+3)-cell_position)-2)**3
 
-@cuda.jit(device=True, inline=True)
+@cudajit(device=True, inline=True)
 def r_shape_cubic(cell_position, index):
     flip_factor = 1.
     ir = int(math.ceil(cell_position)) - 2
@@ -73,7 +73,7 @@ def r_shape_cubic(cell_position, index):
 # Field deposition - linear - rho
 # -------------------------------
 
-@cuda.jit
+@cudajit
 def deposit_rho_gpu_linear(x, y, z, w, q,
                            invdz, zmin, Nz,
                            invdr, rmin, Nr,
@@ -238,7 +238,7 @@ def deposit_rho_gpu_linear(x, y, z, w, q,
 # Field deposition - linear - J
 # -------------------------------
 
-@cuda.jit
+@cudajit
 def deposit_J_gpu_linear(x, y, z, w, q,
                          ux, uy, uz, inv_gamma,
                          invdz, zmin, Nz,
@@ -493,7 +493,7 @@ def deposit_J_gpu_linear(x, y, z, w, q,
 # Field deposition - cubic - rho
 # -------------------------------
 
-@cuda.jit
+@cudajit
 def deposit_rho_gpu_cubic(x, y, z, w, q,
                           invdz, zmin, Nz,
                           invdr, rmin, Nr,
@@ -769,7 +769,7 @@ def deposit_rho_gpu_cubic(x, y, z, w, q,
 # Field deposition - cubic - J
 # -------------------------------
 
-@cuda.jit
+@cudajit
 def deposit_J_gpu_cubic(x, y, z, w, q,
                         ux, uy, uz, inv_gamma,
                         invdz, zmin, Nz,

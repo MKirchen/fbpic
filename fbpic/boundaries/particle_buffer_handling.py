@@ -11,7 +11,7 @@ import numba
 from fbpic.utils.cuda import cuda_installed
 from fbpic.utils.printing import catch_gpu_memory_error
 if cuda_installed:
-    from fbpic.utils.cuda import cuda, cuda_tpb_bpg_1d
+    from fbpic.utils.cuda import cuda, cudajit, cuda_tpb_bpg_1d
 
 def remove_outside_particles(species, fld, n_guard, left_proc, right_proc):
     """
@@ -575,7 +575,7 @@ def shift_particles_periodic_numba( z, zmin, zmax ):
 # -------------
 if cuda_installed:
 
-    @cuda.jit
+    @cudajit
     def split_particles_to_buffers( particle_array, left_buffer,
                     stay_buffer, right_buffer, i_min, i_max ):
         """
@@ -622,7 +622,7 @@ if cuda_installed:
             if (n_right != 0):
                 right_buffer[i-i_max] = particle_array[i]
 
-    @cuda.jit
+    @cudajit
     def copy_particles( N_elements, source_array, source_start,
                                     target_array, target_start ):
         """
@@ -649,7 +649,7 @@ if cuda_installed:
             target_array[i+target_start] = source_array[i+source_start]
 
 
-    @cuda.jit
+    @cudajit
     def shift_particles_periodic_cuda( z, zmin, zmax ):
         """
         Shift the particle positions by an integer number of box length,
