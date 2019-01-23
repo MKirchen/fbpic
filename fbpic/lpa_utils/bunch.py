@@ -501,7 +501,7 @@ def get_space_charge_fields( sim, ptcl, direction='forward' ):
 
 
 def get_space_charge_spect( spect, gamma, direction='forward',
-                             neglect_transverse_currents=True ) :
+                             neglect_transverse_currents=False ) :
     """
     Determine the space charge field in spectral space
 
