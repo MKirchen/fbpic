@@ -122,11 +122,8 @@ class DHT(object):
 
         # Copy the matrices to the GPU if needed
         if self.use_cuda:
-            # Conversion to Fortran order is needed for the cuBlas API
-            self.d_M = cuda.to_device(
-                np.asfortranarray( self.M, dtype=np.float64 ) )
-            self.d_invM = cuda.to_device(
-                np.asfortranarray( self.invM, dtype=np.float64 ) )
+            self.d_M = cuda.to_device(self.M)
+            self.d_invM = cuda.to_device(self.invM)
 
         # Initialize buffer arrays to store the complex Nz x Nr grid
         # as a real 2Nz x Nr grid, before performing the matrix product
@@ -140,7 +137,7 @@ class DHT(object):
         else:
             # Initialize real buffer arrays on the GPU
             # The cuBlas API requires that these arrays be in Fortran order
-            zero_array = np.zeros((2*Nz, Nr), dtype=np.float64, order='F')
+            zero_array = np.zeros((2*Nz, Nr), dtype=np.float64)
             self.d_in = cuda.to_device( zero_array )
             self.d_out = cuda.to_device( zero_array )
             # Initialize a cuda stream (required by cublas)
@@ -191,7 +188,7 @@ class DHT(object):
             # Perform real matrix product (faster than complex matrix product)
             #self.blas.gemm( 'N', 'N', self.d_in.shape[0], self.d_in.shape[1],
             #    self.d_in.shape[1], 1.0, self.d_in, self.d_M, 0., self.d_out)
-            cupy.dot( cupy.asarray(self.d_in), cupy.asarray(self.d_M), out=cupy.asarray(self.d_out) )
+            cupy.dot( cupy.asarray(self.d_in), cupy.asarray(self.d_M), out=cupy.asarray(self.d_out))
             # Convert F-order, real `d_out` to the C-order, complex `G`
             cuda_copy_2dR_to_2dC[self.dim_grid, self.dim_block]( self.d_out, G )
         else:
@@ -221,13 +218,13 @@ class DHT(object):
             # Perform real matrix product (faster than complex matrix product)
             #self.blas.gemm( 'N', 'N', self.d_in.shape[0], self.d_in.shape[1],
             #   self.d_in.shape[1], 1.0, self.d_in, self.d_invM, 0., self.d_out)
-            cupy.dot( self.d_in, self.invM, out=self.d_out)
+            cupy.dot( cupy.asarray(self.d_in), cupy.asarray(self.d_invM), out=cupy.asarray(self.d_out))
             # Convert the F-order d_out array to the C-order F array
             cuda_copy_2dR_to_2dC[self.dim_grid, self.dim_block]( self.d_out, F )
         else:
             # Convert complex array `G` to real array `array_in`
             numba_copy_2dC_to_2dR( G, self.array_in )
             # Perform real matrix product (faster than complex matrix product)
-            np.dot( cupy.asarray(self.array_in), cupy.asarray(self.invM), out=cupy.asarray(self.array_out) )
+            np.dot( self.array_in, self.invM, out=self.array_out )
             # Convert real array `array_out` to complex array `F`
             numba_copy_2dR_to_2dC( self.array_out, F )
