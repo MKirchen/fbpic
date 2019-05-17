@@ -17,7 +17,6 @@ from fbpic.utils.cuda import cuda_installed
 from .numba_methods import numba_copy_2dC_to_2dR, numba_copy_2dR_to_2dC
 if cuda_installed:
     import cupy
-    #from pyculib import blas as cublas
     from fbpic.utils.cuda import cuda, cuda_tpb_bpg_2d
     from .cuda_methods import cuda_copy_2dC_to_2dR, cuda_copy_2dR_to_2dC
 
@@ -69,6 +68,7 @@ class DHT(object):
         self.m = m
         self.Nr = Nr
         self.rmax = rmax
+        self.Nz = Nz
 
         # Calculate the zeros of the Bessel function
         if m !=0:
@@ -136,12 +136,9 @@ class DHT(object):
             self.array_out = zero_array.copy()
         else:
             # Initialize real buffer arrays on the GPU
-            # The cuBlas API requires that these arrays be in Fortran order
             zero_array = np.zeros((2*Nz, Nr), dtype=np.float64)
             self.d_in = cuda.to_device( zero_array )
             self.d_out = cuda.to_device( zero_array )
-            # Initialize a cuda stream (required by cublas)
-            #self.blas = cublas.Blas()
             # Initialize the threads per block and block per grid
             self.dim_grid, self.dim_block = cuda_tpb_bpg_2d(Nz, Nr)
 
@@ -183,14 +180,13 @@ class DHT(object):
         """
         # Perform the matrix product with M
         if self.use_cuda:
-            # Convert C-order, complex array `F` to F-order, real `d_in`
-            cuda_copy_2dC_to_2dR[self.dim_grid, self.dim_block]( F, self.d_in )
+            # Convert complex array `F` to real `d_in`
+            cupy.asarray(self.d_in)[:self.Nz,:] = cupy.asarray(F).real
+            cupy.asarray(self.d_in)[self.Nz:,:] = cupy.asarray(F).imag
             # Perform real matrix product (faster than complex matrix product)
-            #self.blas.gemm( 'N', 'N', self.d_in.shape[0], self.d_in.shape[1],
-            #    self.d_in.shape[1], 1.0, self.d_in, self.d_M, 0., self.d_out)
-            cupy.dot( cupy.asarray(self.d_in), cupy.asarray(self.d_M), out=cupy.asarray(self.d_out))
-            # Convert F-order, real `d_out` to the C-order, complex `G`
-            cuda_copy_2dR_to_2dC[self.dim_grid, self.dim_block]( self.d_out, G )
+            cupy.dot( cupy.asarray(self.d_in), cupy.asarray(self.d_M), 
+                      out=cupy.asarray(self.d_out) )
+            cupy.asarray(G)[:,:] = cupy.asarray(self.d_out)[:self.Nz,:] + 1.j*cupy.asarray(self.d_out)[self.Nz:,:]
         else:
             # Convert complex array `F` to real array `array_in`
             numba_copy_2dC_to_2dR( F, self.array_in )
@@ -213,14 +209,14 @@ class DHT(object):
         """
         # Perform the matrix product with invM
         if self.use_cuda:
-            # Convert C-order, complex array `G` to F-order, real `d_in`
-            cuda_copy_2dC_to_2dR[self.dim_grid, self.dim_block](G, self.d_in )
+            # Convert complex array `G` to real `d_in`
+            cupy.asarray(self.d_in)[:self.Nz,:] = cupy.asarray(G).real
+            cupy.asarray(self.d_in)[self.Nz:,:] = cupy.asarray(G).imag
             # Perform real matrix product (faster than complex matrix product)
-            #self.blas.gemm( 'N', 'N', self.d_in.shape[0], self.d_in.shape[1],
-            #   self.d_in.shape[1], 1.0, self.d_in, self.d_invM, 0., self.d_out)
-            cupy.dot( cupy.asarray(self.d_in), cupy.asarray(self.d_invM), out=cupy.asarray(self.d_out))
-            # Convert the F-order d_out array to the C-order F array
-            cuda_copy_2dR_to_2dC[self.dim_grid, self.dim_block]( self.d_out, F )
+            cupy.dot( cupy.asarray(self.d_in), cupy.asarray(self.d_invM), 
+                      out=cupy.asarray(self.d_out))
+            # Convert real `d_out` to complex `F`
+            cupy.asarray(F)[:,:] = cupy.asarray(self.d_out)[:self.Nz,:] + 1.j*cupy.asarray(self.d_out)[self.Nz:,:]
         else:
             # Convert complex array `G` to real array `array_in`
             numba_copy_2dC_to_2dR( G, self.array_in )
