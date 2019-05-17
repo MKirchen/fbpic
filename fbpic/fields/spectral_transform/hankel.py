@@ -191,7 +191,7 @@ class DHT(object):
             # Perform real matrix product (faster than complex matrix product)
             #self.blas.gemm( 'N', 'N', self.d_in.shape[0], self.d_in.shape[1],
             #    self.d_in.shape[1], 1.0, self.d_in, self.d_M, 0., self.d_out)
-            cupy.dot( self.d_in, self.d_M, out=self.d_out )
+            cupy.dot( cupy.asarray(self.d_in), cupy.asarray(self.d_M), out=cupy.asarray(self.d_out) )
             # Convert F-order, real `d_out` to the C-order, complex `G`
             cuda_copy_2dR_to_2dC[self.dim_grid, self.dim_block]( self.d_out, G )
         else:
@@ -228,6 +228,6 @@ class DHT(object):
             # Convert complex array `G` to real array `array_in`
             numba_copy_2dC_to_2dR( G, self.array_in )
             # Perform real matrix product (faster than complex matrix product)
-            np.dot( self.array_in, self.invM, out=self.array_out )
+            np.dot( cupy.asarray(self.array_in), cupy.asarray(self.invM), out=cupy.asarray(self.array_out) )
             # Convert real array `array_out` to complex array `F`
             numba_copy_2dR_to_2dC( self.array_out, F )
