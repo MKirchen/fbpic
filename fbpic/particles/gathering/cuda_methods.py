@@ -6,7 +6,7 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the field gathering methods linear and cubic order shapes
 on the GPU using CUDA.
 """
-from numba import cuda, float64, int64
+from numba import cuda, int64, float64, complex128
 import math
 # Import inline functions
 from .inline_functions import \
@@ -21,7 +21,15 @@ add_cubic_gather_for_mode = cuda.jit( add_cubic_gather_for_mode,
 # Field gathering linear
 # -----------------------
 
-@cuda.jit
+@cuda.jit(argtypes=[float64[:],float64[:],float64[:],
+                    float64,float64,int64,
+                    float64,float64,int64,
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:]])
 def gather_field_gpu_linear(x, y, z,
                     invdz, zmin, Nz,
                     invdr, rmin, Nr,
@@ -200,7 +208,15 @@ def gather_field_gpu_linear(x, y, z,
 # Field gathering cubic
 # -----------------------
 
-@cuda.jit
+@cuda.jit(argtypes=[float64[:],float64[:],float64[:],
+                    float64,float64,int64,
+                    float64,float64,int64,
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:]])
 def gather_field_gpu_cubic(x, y, z,
                     invdz, zmin, Nz,
                     invdr, rmin, Nr,

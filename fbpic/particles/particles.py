@@ -221,7 +221,7 @@ class Particles(object) :
             # sorting buffers are initialized on CPU like other particle arrays
             # (because they are swapped with these arrays during sorting)
             self.sorting_buffer = np.empty( Ntot, dtype=np.float64)
-
+            
             # Register integer thta records shift in the indices,
             # induced by the moving window
             self.prefix_sum_shift = 0

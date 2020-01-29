@@ -6,7 +6,7 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the deposition methods for rho and J for linear and cubic
 order shapes on the GPU using CUDA, for one azimuthal mode only
 """
-from numba import cuda
+from numba import cuda, int32, int64, float64, complex128
 import math
 from scipy.constants import c
 import numpy as np
@@ -82,7 +82,12 @@ def r_shape_cubic(cell_position, index):
 # Field deposition - linear - rho
 # -------------------------------
 
-@cuda.jit
+@cuda.jit(argtypes=[float64[:],float64[:],float64[:],
+                    float64[:],float64,
+                    float64,float64,int64,
+                    float64,float64,int64,
+                    complex128[:,:],int64,
+                    int32[:],int32[:]])
 def deposit_rho_gpu_linear_one_mode(x, y, z, w, q,
                            invdz, zmin, Nz,
                            invdr, rmin, Nr,
@@ -236,7 +241,14 @@ def deposit_rho_gpu_linear_one_mode(x, y, z, w, q,
 # Field deposition - linear - J
 # -------------------------------
 
-@cuda.jit
+@cuda.jit(argtypes=[float64[:],float64[:],float64[:],
+                    float64[:],float64,
+                    float64[:],float64[:],float64[:],float64[:],
+                    float64,float64,int64,
+                    float64,float64,int64,
+                    complex128[:,:],complex128[:,:],
+                    complex128[:,:],int64,
+                    int32[:],int32[:]])
 def deposit_J_gpu_linear_one_mode(x, y, z, w, q,
                          ux, uy, uz, inv_gamma,
                          invdz, zmin, Nz,
@@ -448,7 +460,12 @@ def deposit_J_gpu_linear_one_mode(x, y, z, w, q,
 # Field deposition - cubic - rho
 # -------------------------------
 
-@cuda.jit
+@cuda.jit(argtypes=[float64[:],float64[:],float64[:],
+                    float64[:],float64,
+                    float64,float64,int64,
+                    float64,float64,int64,
+                    complex128[:,:],int64,
+                    int32[:],int32[:]])
 def deposit_rho_gpu_cubic_one_mode(x, y, z, w, q,
                           invdz, zmin, Nz,
                           invdr, rmin, Nr,
@@ -663,7 +680,14 @@ def deposit_rho_gpu_cubic_one_mode(x, y, z, w, q,
 # Field deposition - cubic - J
 # -------------------------------
 
-@cuda.jit
+@cuda.jit(argtypes=[float64[:],float64[:],float64[:],
+                    float64[:],float64,
+                    float64[:],float64[:],float64[:],float64[:],
+                    float64,float64,int64,
+                    float64,float64,int64,
+                    complex128[:,:],complex128[:,:],
+                    complex128[:,:],int64,
+                    int32[:],int32[:]])
 def deposit_J_gpu_cubic_one_mode(x, y, z, w, q,
                         ux, uy, uz, inv_gamma,
                         invdz, zmin, Nz,
