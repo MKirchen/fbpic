@@ -7,11 +7,12 @@ It defines cuda methods that are used in particle ionization.
 
 Apart from synthactic details, this file is very close to numba_methods.py
 """
-from numba import cuda
+from numba import cuda, boolean, int16, int64, uint64, float32, float64
 from scipy.constants import c
 # Import inline functions
 from .inline_functions import get_ionization_probability, \
     get_E_amplitude, copy_ionized_electrons_batch
+
 # Compile the inline functions for GPU
 get_ionization_probability = cuda.jit( get_ionization_probability,
                                         device=True, inline=True )
@@ -20,7 +21,14 @@ get_E_amplitude = cuda.jit( get_E_amplitude,
 copy_ionized_electrons_batch = cuda.jit( copy_ionized_electrons_batch,
                                             device=True, inline=True )
 
-@cuda.jit()
+@cuda.jit(argtypes=[int64,int64,int64,
+                    int64,int64,int64,
+                    int64[:,:],int16[:],uint64[:],float32[:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:]])
 def ionize_ions_cuda( N_batch, batch_size, Ntot,
     level_start, level_max, n_levels,
     n_ionized, ionized_from, ionization_level, random_draw,
@@ -83,7 +91,17 @@ def ionize_ions_cuda( N_batch, batch_size, Ntot,
             else:
                 ionized_from[ip] = -1
 
-@cuda.jit()
+@cuda.jit(argtypes=[int64,int64,int64,int64,
+                    int64[:,:],int16[:],
+                    int64, boolean,
+                    float64[:],float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:]])
 def copy_ionized_electrons_cuda(
     N_batch, batch_size, elec_old_Ntot, ion_Ntot,
     cumulative_n_ionized, ionized_from,

@@ -10,6 +10,7 @@ import numpy as np
 from fbpic.utils.threading import njit_parallel, prange
 # Check if CUDA is available, then import CUDA functions
 from fbpic.utils.cuda import cuda_installed
+from numba import int64, uint64, float64
 if cuda_installed:
     from fbpic.utils.cuda import cuda, cuda_tpb_bpg_1d
 
@@ -84,7 +85,7 @@ def reallocate_and_copy_old( species, use_cuda, old_Ntot, new_Ntot ):
         old_array = getattr(species, attr)
         new_array = allocate_empty( new_Ntot, data_on_gpu, dtype=np.float64 )
         if data_on_gpu:
-            copy_particle_data_cuda[ ptcl_grid_1d, ptcl_block_1d ](
+            copy_particle_data_cuda_float[ ptcl_grid_1d, ptcl_block_1d ](
                 old_Ntot, old_array, new_array )
         else:
             copy_particle_data_numba( old_Ntot, old_array, new_array )
@@ -94,7 +95,7 @@ def reallocate_and_copy_old( species, use_cuda, old_Ntot, new_Ntot ):
         old_array = species.tracker.id
         new_array = allocate_empty( new_Ntot, use_cuda, dtype=np.uint64 )
         if data_on_gpu:
-            copy_particle_data_cuda[ ptcl_grid_1d, ptcl_block_1d ](
+            copy_particle_data_cuda_int[ ptcl_grid_1d, ptcl_block_1d ](
                 old_Ntot, old_array, new_array )
         else:
             copy_particle_data_numba( old_Ntot, old_array, new_array )
@@ -138,7 +139,7 @@ def copy_particle_data_numba( Ntot, old_array, new_array ):
     return( new_array )
 
 if cuda_installed:
-    @cuda.jit()
+
     def copy_particle_data_cuda( Ntot, old_array, new_array ):
         """
         Copy the `Ntot` elements of `old_array` into `new_array`, on GPU
@@ -147,3 +148,10 @@ if cuda_installed:
         ip = cuda.grid(1)
         if ip < Ntot:
             new_array[ip] = old_array[ip]
+
+    # Compile for float
+    copy_particle_data_cuda_float = cuda.jit(
+        argtypes=[int64,float64[:],float64[:]])(copy_particle_data_cuda)
+    # Compile for int
+    copy_particle_data_cuda_int = cuda.jit(
+        argtypes=[int64,uint64[:],uint64[:]])(copy_particle_data_cuda)
