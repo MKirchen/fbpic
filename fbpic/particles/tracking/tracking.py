@@ -6,7 +6,7 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the structure and methods associated with particle tracking.
 """
 import numpy as np
-from numba import cuda
+from numba import cuda, uint64, int64
 # Check if CUDA is available, then import CUDA functions
 from fbpic.utils.cuda import cuda_installed
 if cuda_installed:
@@ -132,7 +132,8 @@ class ParticleTracker(object):
 
 if cuda_installed:
 
-    @cuda.jit()
+    @cuda.jit(argtypes=[uint64[:],int64,int64,
+                        int64,int64])
     def generate_ids_gpu( id_array, i_start, i_end,
                             next_attributed_id, id_step ):
         """
