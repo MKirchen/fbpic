@@ -6,6 +6,7 @@ This files contains cuda methods that are used in the boosted-frame
 diagnostics
 """
 import numpy as np
+from numba import int64, uint64, float64
 from fbpic.utils.cuda import cuda, cuda_tpb_bpg_1d
 
 def extract_slice_from_gpu( pref_sum_curr, N_area, species ):
@@ -39,14 +40,14 @@ def extract_slice_from_gpu( pref_sum_curr, N_area, species ):
     # - Optional particle arrays
     if species.tracker is not None:
         selected_particle_id = cuda.device_array( (N_area,), dtype=np.uint64 )
-        extract_array_from_gpu[dim_grid_1d, dim_block_1d](
+        extract_array_from_gpu_int[dim_grid_1d, dim_block_1d](
             pref_sum_curr, species.tracker.id, selected_particle_id )
     if species.ionizer is not None:
         selected_particle_charge = cuda.device_array( (N_area,), dtype=np.uint64 )
-        extract_array_from_gpu[dim_grid_1d, dim_block_1d]( pref_sum_curr,
+        extract_array_from_gpu_int[dim_grid_1d, dim_block_1d]( pref_sum_curr,
           species.ionizer.ionization_level, selected_particle_charge )
         selected_particle_weight = cuda.device_array( (N_area,), dtype=np.float64 )
-        extract_array_from_gpu[dim_grid_1d, dim_block_1d]( pref_sum_curr,
+        extract_array_from_gpu_float[dim_grid_1d, dim_block_1d]( pref_sum_curr,
           species.ionizer.w_times_level, selected_particle_weight )
 
     # Copy GPU arrays to the host
@@ -64,7 +65,10 @@ def extract_slice_from_gpu( pref_sum_curr, N_area, species ):
     # Return the data as dictionary
     return( particle_data )
 
-@cuda.jit()
+
+@cuda.jit(argtypes=[int64,float64[:],float64[:],float64[:],
+                    float64[:],float64[:],float64[:],float64[:],float64[:],
+                    float64[:,:]])
 def extract_particles_from_gpu( part_idx_start, x, y, z, ux, uy, uz, w,
                                 inv_gamma, selected ):
     """
@@ -102,7 +106,6 @@ def extract_particles_from_gpu( part_idx_start, x, y, z, ux, uy, uz, w,
         selected[6, i] = w[ptcl_idx]
         selected[7, i] = inv_gamma[ptcl_idx]
 
-@cuda.jit()
 def extract_array_from_gpu( part_idx_start, array, selected ):
     """
     Extract a selection of particles from the GPU and
@@ -128,3 +131,10 @@ def extract_array_from_gpu( part_idx_start, array, selected ):
 
     if i < N_part:
         selected[i] = array[part_idx_start+i]
+        
+# Compile for float
+extract_array_from_gpu_float = cuda.jit(
+    argtypes=[int64,float64[:],float64[:]])(extract_array_from_gpu)
+# Compile for int
+extract_array_from_gpu_int = cuda.jit(
+    argtypes=[int64,uint64[:],uint64[:]])(extract_array_from_gpu)

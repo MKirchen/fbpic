@@ -18,6 +18,7 @@ from .field_diag import FieldDiagnostic
 
 # Check if CUDA is available, then import CUDA functions
 from fbpic.utils.cuda import cuda_installed
+from numba import int64, float64, complex128
 if cuda_installed:
     from fbpic.utils.cuda import cuda, cuda_tpb_bpg_1d
 
@@ -734,7 +735,11 @@ class SliceHandler:
 
 if cuda_installed:
 
-    @cuda.jit
+    @cuda.jit(argtypes=[int64,int64,float64,float64[:,:,:],
+                        complex128[:,:],complex128[:,:],complex128[:,:],
+                        complex128[:,:],complex128[:,:],complex128[:,:],
+                        complex128[:,:],complex128[:,:],complex128[:,:],
+                        complex128[:,:],int64])
     def extract_slice_cuda( Nr, iz, Sz, slice_arr,
         Er, Et, Ez, Br, Bt, Bz, Jr, Jt, Jz, rho, m ):
         """
