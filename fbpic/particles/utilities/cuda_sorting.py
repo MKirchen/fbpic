@@ -5,7 +5,7 @@
 This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the particle sorting methods on the GPU using CUDA.
 """
-from numba import cuda
+from numba import cuda, int32, int64, float64
 from fbpic.utils.cuda import cupy_installed
 if cupy_installed:
     import cupy
@@ -18,7 +18,10 @@ import numpy as np
 # Sorting utilities - get_cell_idx / sort / prefix_sum
 # -----------------------------------------------------
 
-@cuda.jit
+@cuda.jit(argtypes=[int32[:],int64[:],
+                    float64[:],float64[:],float64[:],
+                    float64, float64, int64,
+                    float64, float64, int64])
 def get_cell_idx_per_particle(cell_idx, sorted_idx,
                               x, y, z,
                               invdz, zmin, Nz,
@@ -121,7 +124,7 @@ def sort_particles_per_cell(cell_idx, sorted_idx):
         # Here we force `cupy` to release the memory.
         cupy_mempool.free_all_blocks()
 
-@cuda.jit
+@cuda.jit(argtypes=[int32[:],int32[:]])
 def incl_prefix_sum(cell_idx, prefix_sum):
     """
     Perform an inclusive parallel prefix sum on the sorted
@@ -154,7 +157,7 @@ def incl_prefix_sum(cell_idx, prefix_sum):
             ci += 1
 
 
-@cuda.jit
+@cuda.jit(argtypes=[int32[:],int32[:],int64])
 def prefill_prefix_sum(cell_idx, prefix_sum, Ntot):
     """
     Prefill the prefix sum array so that:
@@ -189,7 +192,7 @@ def prefill_prefix_sum(cell_idx, prefix_sum, Ntot):
             # If this species has no particles, fill all cells with 0
             prefix_sum[i] = 0
 
-@cuda.jit
+@cuda.jit(argtypes=[int64[:],float64[:],float64[:]])
 def write_sorting_buffer(sorted_idx, val, buf):
     """
     Writes the values of a particle array to a buffer,
