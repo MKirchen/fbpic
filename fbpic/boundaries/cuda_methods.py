@@ -5,9 +5,11 @@
 This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines a set of generic functions that operate on a GPU.
 """
-from numba import cuda
+from numba import cuda, boolean, int64, float64, complex128
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:,:],complex128[:,:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],int64,
+                    boolean,boolean,int64,int64])
 def copy_vec_to_gpu_buffer( vec_buffer_l, vec_buffer_r,
                             grid_r, grid_t, grid_z, m,
                             copy_left, copy_right, nz_start, nz_end ):
@@ -68,7 +70,10 @@ def copy_vec_to_gpu_buffer( vec_buffer_l, vec_buffer_r,
                 vec_buffer_r[3*m+2, iz, ir] = grid_z[ iz_right, ir ]
 
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:,:],complex128[:,:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],int64,
+                    boolean,boolean,int64,int64])
 def copy_pml_to_gpu_buffer( vec_buffer_l, vec_buffer_r,
                             grid_r, grid_t, grid_z, pml_r, pml_t, m,
                             copy_left, copy_right, nz_start, nz_end ):
@@ -137,7 +142,9 @@ def copy_pml_to_gpu_buffer( vec_buffer_l, vec_buffer_r,
                 vec_buffer_r[5*m+4, iz, ir] = pml_t[ iz_right, ir ]
 
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:,:],complex128[:,:,:],
+                    complex128[:,:],int64,
+                    boolean,boolean,int64,int64])
 def copy_scal_to_gpu_buffer( scal_buffer_l, scal_buffer_r, grid, m,
                              copy_left, copy_right, nz_start, nz_end ):
     """
@@ -192,7 +199,9 @@ def copy_scal_to_gpu_buffer( scal_buffer_l, scal_buffer_r, grid, m,
                 scal_buffer_r[m, iz, ir] = grid[ iz_right, ir ]
 
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:,:],complex128[:,:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],int64,
+                    boolean,boolean,int64,int64])
 def replace_vec_from_gpu_buffer( vec_buffer_l, vec_buffer_r,
                                  grid_r, grid_t, grid_z, m,
                                  copy_left, copy_right, nz_start, nz_end ):
@@ -250,7 +259,10 @@ def replace_vec_from_gpu_buffer( vec_buffer_l, vec_buffer_r,
                 grid_t[ iz_right, ir ] = vec_buffer_r[3*m+1, iz, ir]
                 grid_z[ iz_right, ir ] = vec_buffer_r[3*m+2, iz, ir]
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:,:],complex128[:,:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],int64,
+                    boolean,boolean,int64,int64])
 def replace_pml_from_gpu_buffer( vec_buffer_l, vec_buffer_r,
                                  grid_r, grid_t, grid_z, pml_r, pml_t, m,
                                  copy_left, copy_right, nz_start, nz_end ):
@@ -316,7 +328,9 @@ def replace_pml_from_gpu_buffer( vec_buffer_l, vec_buffer_r,
                 pml_r[ iz_right, ir ] = vec_buffer_r[5*m+3, iz, ir]
                 pml_t[ iz_right, ir ] = vec_buffer_r[5*m+4, iz, ir]
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:,:],complex128[:,:,:],
+                    complex128[:,:],int64,
+                    boolean,boolean,int64,int64])
 def replace_scal_from_gpu_buffer( scal_buffer_l, scal_buffer_r, grid, m,
                                  copy_left, copy_right, nz_start, nz_end ):
     """
@@ -369,7 +383,9 @@ def replace_scal_from_gpu_buffer( scal_buffer_l, scal_buffer_r, grid, m,
                 grid[ iz_right, ir ] = scal_buffer_r[m, iz, ir]
 
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:,:],complex128[:,:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],int64,
+                    boolean,boolean,int64,int64])
 def add_vec_from_gpu_buffer( vec_buffer_l, vec_buffer_r,
                              grid_r, grid_t, grid_z, m,
                              copy_left, copy_right, nz_start, nz_end ):
@@ -427,7 +443,9 @@ def add_vec_from_gpu_buffer( vec_buffer_l, vec_buffer_r,
                 grid_t[ iz_right, ir ] += vec_buffer_r[3*m+1, iz, ir]
                 grid_z[ iz_right, ir ] += vec_buffer_r[3*m+2, iz, ir]
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:,:],complex128[:,:,:],
+                    complex128[:,:],int64,
+                    boolean,boolean,int64,int64])
 def add_scal_from_gpu_buffer( scal_buffer_l, scal_buffer_r, grid, m,
                               copy_left, copy_right, nz_start, nz_end ):
     """
@@ -481,7 +499,9 @@ def add_scal_from_gpu_buffer( scal_buffer_l, scal_buffer_r, grid, m,
 
 # CUDA damping kernels:
 # --------------------
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    float64[:],int64])
 def cuda_damp_EB_left( Er, Et, Ez, Br, Bt, Bz, damp_array, nd ):
     """
     Multiply the E and B fields in the left guard cells
@@ -520,7 +540,9 @@ def cuda_damp_EB_left( Er, Et, Ez, Br, Bt, Bz, damp_array, nd ):
             Bt[iz, ir] *= damp_factor_left
             Bz[iz, ir] *= damp_factor_left
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],
+                    float64[:],int64])
 def cuda_damp_EB_left_pml( Er_pml, Et_pml, Br_pml, Bt_pml, damp_array, nd ):
     """
     Multiply the E and B fields in the left guard cells
@@ -557,7 +579,9 @@ def cuda_damp_EB_left_pml( Er_pml, Et_pml, Br_pml, Bt_pml, damp_array, nd ):
             Br_pml[iz, ir] *= damp_factor_left
             Bt_pml[iz, ir] *= damp_factor_left
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:],complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],complex128[:,:],
+                    float64[:],int64])
 def cuda_damp_EB_right( Er, Et, Ez, Br, Bt, Bz, damp_array, nd ):
     """
     Multiply the E and B fields in the right guard cells
@@ -598,7 +622,9 @@ def cuda_damp_EB_right( Er, Et, Ez, Br, Bt, Bz, damp_array, nd ):
             Bz[iz_right, ir] *= damp_factor_right
 
 
-@cuda.jit
+@cuda.jit(argtypes=[complex128[:,:],complex128[:,:],
+                    complex128[:,:],complex128[:,:],
+                    float64[:],int64])
 def cuda_damp_EB_right_pml( Er_pml, Et_pml, Br_pml, Bt_pml, damp_array, nd ):
     """
     Multiply the E and B fields in the right guard cells
