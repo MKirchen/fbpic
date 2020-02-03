@@ -6,7 +6,9 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines cuda methods that are used in Compton scattering (on GPU).
 """
 import math
-from numba import cuda
+import numpy as np
+import numba
+from numba import cuda, int64, float64
 from numba.cuda.random import xoroshiro128p_uniform_float64
 # Import the inline functions
 from .inline_functions import lorentz_transform, get_scattering_probability, \
@@ -18,7 +20,10 @@ get_scattering_probability = cuda.jit( get_scattering_probability,
 get_photon_density_gaussian = cuda.jit( get_photon_density_gaussian,
                                             device=True, inline=True )
 
-@cuda.jit
+@cuda.jit(argtypes=[float64[:],int64,
+                    float64[:],float64[:],float64[:],
+                    float64,float64,float64,
+                    float64,float64,float64,float64])
 def get_photon_density_gaussian_cuda( photon_n, elec_Ntot,
     elec_x, elec_y, elec_z, ct, photon_n_lab_max, inv_laser_waist2,
     inv_laser_ctau2, laser_initial_z0, gamma_boost, beta_boost ):
@@ -50,8 +55,15 @@ def get_photon_density_gaussian_cuda( photon_n, elec_Ntot,
             photon_n_lab_max, inv_laser_waist2, inv_laser_ctau2,
             laser_initial_z0, gamma_boost, beta_boost )
 
+# Create dtype for random_states struct
+random_states_dtype = numba.from_dtype(
+    np.dtype([('s0', '<u8'), ('s1', '<u8')], align=True))
 
-@cuda.jit
+@cuda.jit(argtypes=[int64,int64,int64,
+                   int64[:],int64[:],
+                   random_states_dtype[:],float64,
+                   float64[:],float64[:],float64[:],float64[:],float64,
+                   float64[:],float64,float64,float64,float64])
 def determine_scatterings_cuda( N_batch, batch_size, elec_Ntot,
     nscatter_per_elec, nscatter_per_batch, random_states, dt,
     elec_ux, elec_uy, elec_uz, elec_inv_gamma, ratio_w_electron_photon,
