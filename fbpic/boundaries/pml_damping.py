@@ -6,6 +6,7 @@ This file is part of the Fourier-Bessel Particle-In-Cell code (FB-PIC)
 It defines the structure that damps the fields in the guard cells.
 """
 import numpy as np
+from numba import int64, float64, complex128
 from fbpic.utils.cuda import cuda_installed
 if cuda_installed:
     from fbpic.utils.cuda import cuda_tpb_bpg_2d, cuda
@@ -106,7 +107,10 @@ def generate_pml_damp_array( n_pml, cdt_over_dr ):
 
 
 if cuda_installed:
-    @cuda.jit
+    @cuda.jit(argtypes=[complex128[:,:],complex128[:,:],
+                        complex128[:,:],complex128[:,:],
+                        complex128[:,:],complex128[:,:],
+                        float64[:],int64])
     def cuda_damp_pml_EB( Et, Et_pml, Ez, Bt, Bt_pml, Bz,
                       damp_array, n_pml ) :
         """
