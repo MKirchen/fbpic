@@ -393,7 +393,7 @@ class ParticleDiagnostic(OpenPMDDiagnostic) :
             select_array = np.logical_and(subsampling_array,select_array)
         # id selector
         if self.ids is not None :
-            ids_array = getattr(species, "id")
+            ids_array = getattr(species.tracker, "id")
             select_array = np.logical_and(ids_array == self.ids,select_array)
 
         # Apply the rules successively
