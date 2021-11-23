@@ -19,7 +19,7 @@ class ParticleDiagnostic(OpenPMDDiagnostic) :
     def __init__(self, period=None, species={}, comm=None,
         particle_data=["position", "momentum", "weighting"],
         select=None, write_dir=None, iteration_min=0, iteration_max=np.inf,
-        subsampling_fraction=None, dt_period=None ) :
+        subsampling_fraction=None, dt_period=None, ids=None ) :
         """
         Initialize the particle diagnostics.
 
@@ -73,6 +73,10 @@ class ParticleDiagnostic(OpenPMDDiagnostic) :
         subsampling_fraction : float, optional
             If this is not None, the particle data is subsampled with
             subsampling_fraction probability
+
+        ids : array of type int64, optional
+            If this is not None, the particle data is selected based on the
+            ids.
         """
         # Check input
         if len(species) == 0:
@@ -94,6 +98,7 @@ class ParticleDiagnostic(OpenPMDDiagnostic) :
         self.species_dict = species
         self.select = select
         self.subsampling_fraction = subsampling_fraction
+        self.ids = ids
 
         # For each species, get the particle arrays to be written
         self.array_quantities_dict = {}
@@ -386,6 +391,10 @@ class ParticleDiagnostic(OpenPMDDiagnostic) :
             subsampling_array = np.random.rand(species.Ntot) < \
                 self.subsampling_fraction
             select_array = np.logical_and(subsampling_array,select_array)
+        # id selector
+        if self.ids is not None :
+            ids_array = getattr(species, "id")
+            select_array = np.logical_and(ids_array == self.ids,select_array)
 
         # Apply the rules successively
         if self.select is not None :
