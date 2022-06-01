@@ -475,12 +475,14 @@ class Simulation(object):
             # Run the diagnostics
             # (after gathering ; allows output of gathered fields on particles)
             # (E, B, rho, x are defined at time n ; J, p at time n-1/2)
+            # Deposit J before the output to get the currents at t = n.
+            self.deposit('J', exchange=True)
+            # Additionally deposit rho_prev again at t = n.
+            self.deposit('rho_prev', exchange=True)
             for diag in self.diags:
                 # Check if the diagnostic should be written at this iteration
                 # (If needed: bring rho/J from spectral space, where they
                 # were smoothed/corrected, and copy the data from the GPU.)
-                # Deposit J before the output to get the currents at t = n.
-                self.deposit('J')
                 diag.write( self.iteration )
 
             # Push the particles' positions and velocities to t = (n+1/2) dt
