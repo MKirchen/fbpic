@@ -475,10 +475,23 @@ class Simulation(object):
             # Run the diagnostics
             # (after gathering ; allows output of gathered fields on particles)
             # (E, B, rho, x are defined at time n ; J, p at time n-1/2)
-            # Deposit J before the output to get the currents at t = n.
-            self.deposit('J')
-            # Additionally deposit rho_prev again at t = n.
-            self.deposit('rho_prev')
+            # Push particles to t = n-1/2.
+            for species in ptcl:
+                species.push_x(-0.5 * dt)
+            # Shift back Galilean boundaries
+            if self.use_galilean:
+                self.shift_galilean_boundaries(-0.5*dt)
+            # Deposit rho_prev at t = n-1/2 to match J at n-1/2
+            self.deposit('rho_prev', exchange=True)
+            # Push particles to t = n
+            for species in ptcl:
+                species.push_x(0.5 * dt)
+            # Shift forward Galilean boundaries
+            if self.use_galilean:
+                self.shift_galilean_boundaries(0.5*dt)
+            # Deposit rho_prev at t = n
+            self.deposit('rho_prev', exchange=False)
+
             for diag in self.diags:
                 # Check if the diagnostic should be written at this iteration
                 # (If needed: bring rho/J from spectral space, where they
