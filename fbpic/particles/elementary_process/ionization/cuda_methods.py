@@ -19,7 +19,7 @@ get_ionization_probability = cuda.jit( get_ionization_probability,
 get_E_amplitude = cuda.jit( get_E_amplitude,
                             device=True, inline=True )
 copy_ionized_electrons_batch = cuda.jit( copy_ionized_electrons_batch,
-                                            device=True, inline=True )
+                                            device=True, inline=False )
 
 @compile_cupy
 def ionize_ions_cuda( N_batch, batch_size, Ntot,
